@@ -115,6 +115,8 @@ Given the time expectations of this exercise, we don't expect anyone to submit a
 
 It would be great for example if you'd write some unit test / simple frontend demostrating calls to your fresh APIs.
 
+***I've tried to find time to create FE (in react) & unit tests, and also create docker file to run it as a self app as a one liner, but due of time limitation, no luck***
+
   
 
 ## Submitting the Assignment
