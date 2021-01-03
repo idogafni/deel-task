@@ -82,7 +82,7 @@ Below is a list of the required API's for the application.
 
 1. ***PUT*** `/jobs/:job_id/pay` - Pay for a job, a client can only pay if his balance >= the amount to pay. The amount should be moved from the client's balance to the contractor balance.
 
-1. ***PUT*** `/balances/deposit/:userId` - Deposits money into the the the balance of a client, a client can't deposit more than 25% his total of jobs to pay. (at the deposit moment)
+1. ***PUT*** `/balances/deposit/:userId` - Deposits money into a balance of a client, a client can't deposit more than 25% his total of jobs to pay. (at the deposit moment)
 
 1. ***GET*** `/admin/best-profession?start=<date>&end=<date>` - Returns the profession that earned the most money (sum of jobs paid) for any contactor that worked in the query time range.
 
