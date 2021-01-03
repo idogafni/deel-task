@@ -74,19 +74,24 @@ Below is a list of the required API's for the application.
   
 
 
-1. ***GET*** `/contracts/:id` - This API is broken 😵! it should return the contract only if it belongs to the profile calling. better fix that!
+1. ***GET*** `/contracts/:id` - This API is broken 😵! it should return the contract only if it belongs to the profile calling. better fix that! ***Fixed it! add the check as a client/contractor***
 
 1. ***GET*** `/contracts` - Returns a list of contracts belonging to a user (client or contractor), the list should only contain non terminated contracts.
 
 1. ***GET*** `/jobs/unpaid` -  Get all unpaid jobs for a user (***either*** a client or contractor), for ***active contracts only***.
 
 1. ***PUT*** `/jobs/:job_id/pay` - Pay for a job, a client can only pay if his balance >= the amount to pay. The amount should be moved from the client's balance to the contractor balance.
+***In basic it was requested as post request, but after reviewing the functionliaty (update is requeired) I've change it to put request instead***
 
 1. ***PUT*** `/balances/deposit/:userId` - Deposits money into a balance of a client, a client can't deposit more than 25% his total of jobs to pay. (at the deposit moment)
+***In basic it was requested as post request, but after reviewing the functionliaty (update is requeired) I've change it to put request instead***
 
 1. ***GET*** `/admin/best-profession?start=<date>&end=<date>` - Returns the profession that earned the most money (sum of jobs paid) for any contactor that worked in the query time range.
+***As in this request, I'm using the given middleware to identify the user making the request, all data is restircted per user connection by contracts*** 
 
 1. ***GET*** `/admin/best-clients?start=<date>&end=<date>&limit=<integer>` - returns the clients the paid the most for jobs in the query time period. limit query parameter should be applied, default limit is 2.
+***As in this request, I'm using the given middleware to identify the user making the request, all data is restircted per user connection by contracts*** 
+
 ```
  [
     {
