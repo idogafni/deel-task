@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const { Op } = require("sequelize");
-const {sequelize} = require('./model')
+const { Op, json } = require("sequelize");
+const {sequelize, Contract} = require('./model')
 const {getProfile} = require('./middleware/getProfile')
 const app = express();
 app.use(bodyParser.json());
@@ -14,8 +14,10 @@ app.set('models', sequelize.models)
 app.get('/contracts/:id', getProfile, async (req, res) => {
     const {Contract} = req.app.get('models')
     const {id} = req.params
-    const contract = await Contract.findOne({where: {id}})
-    if(!contract) return res.status(404).end()
+    const contract = await Contract.findOne({
+        where: {id, ClientId: req.profile.get('id')}
+    });
+    if (!contract) return res.status(404).end()
     res.json(contract)
 });
 
@@ -26,7 +28,8 @@ app.get('/contracts', getProfile, async(req, res) => {
     const {Contract} = req.app.get('models')
     const contracts = await Contract.findAll({
         where: {
-            [Op.or]: [{status: 'new'}, {status: 'in_progress'}]
+            [Op.or]: [{status: 'new'}, {status: 'in_progress'}],
+            [Op.and]: [{ClientId: req.profile.get('id')}]
         }
     })
     res.json(contracts)
@@ -41,7 +44,7 @@ app.get('/jobs/unpaid', getProfile, async(req, res) => {
         where: {paid: null},
         include: [{
             model: Contract,
-            where: {status: 'in_progress'}
+            where: {status: 'in_progress', ClientId: req.profile.get('id')}
         }]
     });
     res.json(jobs)
@@ -49,21 +52,36 @@ app.get('/jobs/unpaid', getProfile, async(req, res) => {
 
 /**
  * @requires job id to pay
- * @returnsPay for a job, a client can only pay if his balance >= the amount to pay. The amount should be moved from the client's balance to the contractor balance.
+ * @returns Pay for a job, a client can only pay if his balance >= the amount to pay. The amount should be moved from the client's balance to the contractor balance.
  */
 app.post('/jobs/:job_id/pay', getProfile, async(req, res) => {
-    const {Job} = req.app.get('models')
-    const job = await Job.create({
-
-    })
-    job.save(function(err) {
-        if (err) res.send.err
-    })
+    const {Job, Contract, Profile} = req.app.get('models');
+    const {job_id} = req.params;
+    const job = await Job.findOne({
+        where: {id: job_id, paid: null},
+        include: [{
+            model: Contract,
+            where: {ClientId: req.profile.get('id')}
+        }]
+    });
+    if(!job) return res.status(404).end()
+    const currentBalance = req.profile.get('balance');
+    if (job.price <= currentBalance) {
+        req.profile.balance = currentBalance - job.price;
+        /*req.profile.save(function(err) {
+            if (err) res.send(err)
+        });*/
+        console.log(req.profile)
+        job.paid = true;
+        res.json(req.profile)
+    } else {
+        res.json({err: 'not enough balance in order to pay for this job'})
+    }
 });
 
 /**
  * @readonly userId
- * @returns Deposits money into the the the balance of a client, a client can't deposit more than 25% his total of jobs to pay. (at the deposit moment)
+ * @returns Deposit money in balance of a client, a client can't deposit more than 25% his total of jobs to pay. (at the deposit moment)
  */
 app.post('/balances/deposit/:userId', getProfile, async(req, res) => {
     const {Job} = req.app.get('models')
