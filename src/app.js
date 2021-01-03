@@ -31,10 +31,9 @@ app.get('/contracts', getProfile, async(req, res) => {
     const contracts = await Contract.findAll({
         where: {
             [Op.or]: [{ClientId: req.profile.get('id')}, {ContractorId: req.profile.get('id')}],
-            [Op.and]: [
+            [Op.not]: [
                 {status: {
-                    [Op.like]: 'new',
-                    [Op.like]: 'in_progress'
+                    [Op.like]: 'terminated'
                 }
             }]
         }
@@ -44,7 +43,7 @@ app.get('/contracts', getProfile, async(req, res) => {
 });
 
 /**
- * @returns Get all unpaid jobs for a user (either a client or contractor), for active contracts only.
+ * @returns Get all unpaid jobs for a user (either a client or contractor), for active contracts only (status: 'in_progress')
  */
 app.get('/jobs/unpaid', getProfile, async(req, res) => {
     const{Job, Contract} = req.app.get('models');
